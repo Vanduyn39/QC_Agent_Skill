@@ -7,13 +7,13 @@ from google.oauth2.service_account import Credentials
 from datetime import datetime, timedelta
 
 # ==========================================
-# CẤU HÌNH GOOGLE SHEETS
+# GOOGLE SHEETS CONFIGURATION
 # ==========================================
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
 CREDENTIALS_FILE = "credentials.json"
 
 def sync_data_from_sheets(project_name: str):
-    """Kéo dữ liệu mới nhất từ tab 'Bugs' trên Google Sheets về lưu đè lên file Excel local"""
+    """Pull the latest data from the 'Bugs' tab on Google Sheets and overwrite the local Excel file"""
     try:
         creds = Credentials.from_service_account_file(CREDENTIALS_FILE, scopes=SCOPES)
         client = gspread.authorize(creds)
@@ -25,36 +25,36 @@ def sync_data_from_sheets(project_name: str):
             file_path = f"assets/{project_name}/bug_tracking_db.xlsx"
             os.makedirs(os.path.dirname(file_path), exist_ok=True)
             df_sheets.to_excel(file_path, index=False)
-            print(f"[Sync] Đã đồng bộ dữ liệu mới nhất từ tab 'Bugs' Google Sheets cho dự án {project_name}.")
+            print(f"[Sync] Synchronized the latest data from the 'Bugs' Google Sheets tab for project {project_name}.")
             return True
     except Exception as e:
-        print(f"[Sync Warning] Không thể đồng bộ từ Google Sheets, sẽ dùng dữ liệu local: {e}")
+        print(f"[Sync Warning] Cannot synchronize from Google Sheets, will use local data: {e}")
     return False
 
 # ==========================================
-# HÀM XUẤT BÁO CÁO CHÍNH
+# MAIN REPORT EXPORT FUNCTION
 # ==========================================
 def get_project_report(project_name: str, mode: str = "daily", start_date: str = None, end_date: str = None):
-    # 1. ĐỒNG BỘ DATA TỪ CLOUD VỀ LOCAL TRƯỚC
+    # 1. SYNC DATA FROM CLOUD TO LOCAL FIRST
     sync_data_from_sheets(project_name)
 
-    # 2. XỬ LÝ LOGIC VẼ BIỂU ĐỒ
+    # 2. PROCESS CHART DRAWING LOGIC
     file_path = f"assets/{project_name}/bug_tracking_db.xlsx"
     output_dir = f"assets/{project_name}/outputs"
     os.makedirs(output_dir, exist_ok=True)
 
     if not os.path.exists(file_path):
-        return json.dumps({"error": f"Không tìm thấy file tracking lỗi cho {project_name}."})
+        return json.dumps({"error": f"Bug tracking file not found for {project_name}."})
 
     try:
         df = pd.read_excel(file_path)
-        # Ép kiểu cột Date để so sánh
+        # Cast Date column for comparison
         df['Date'] = pd.to_datetime(df['Date'], errors='coerce', format='mixed', dayfirst=True)
         
         now = datetime.now()
         today = pd.to_datetime(now.strftime("%Y-%m-%d"))
         
-        # XỬ LÝ LỌC THỜI GIAN THEO MODE
+        # PROCESS TIME FILTERING BY MODE
         if mode == "daily":
             df_filtered = df[df['Date'] == today]
             today_str = now.strftime("%Y-%m-%d")
@@ -72,7 +72,7 @@ def get_project_report(project_name: str, mode: str = "daily", start_date: str =
             
         elif mode == "custom":
             if not start_date or not end_date:
-                return json.dumps({"error": "Chế độ custom yêu cầu phải có start_date và end_date (YYYY-MM-DD)."})
+                return json.dumps({"error": "Custom mode requires start_date and end_date (YYYY-MM-DD)."})
             start_dt = pd.to_datetime(start_date)
             end_dt = pd.to_datetime(end_date)
             df_filtered = df[(df['Date'] >= start_dt) & (df['Date'] <= end_dt)]
@@ -80,13 +80,13 @@ def get_project_report(project_name: str, mode: str = "daily", start_date: str =
             chart_filename = f"custom_dashboard_{start_date}_to_{end_date}.png"
             
         else:
-            return json.dumps({"error": "Mode không hợp lệ (chỉ hỗ trợ daily/weekly/custom)."})
+            return json.dumps({"error": "Invalid mode (only supports daily/weekly/custom)."})
 
         if df_filtered.empty:
-            return json.dumps({"message": f"Không có bug nào được log trong khoảng thời gian này."})
+            return json.dumps({"message": f"No bugs logged during this period."})
 
         # ==========================================
-        # VẼ DASHBOARD NHIỀU BIỂU ĐỒ (SUBPLOTS)
+        # DRAW MULTI-CHART DASHBOARD (SUBPLOTS)
         # ==========================================
         fig, axes = plt.subplots(2, 3, figsize=(18, 10))
         fig.suptitle(chart_title, fontsize=18, fontweight='bold', y=1.02)
@@ -104,7 +104,7 @@ def get_project_report(project_name: str, mode: str = "daily", start_date: str =
         elif "Status" in df.columns:
             charts_to_draw.append(("Status", "Defect by Status")) 
 
-        # 1. Hàm vẽ biểu đồ tròn (Pie Chart) cho các trường phân loại
+        # 1. Function to draw pie chart for classification fields
         def draw_pie_chart(ax, data_series, title):
             if data_series.empty:
                 ax.axis('off')
@@ -118,7 +118,7 @@ def get_project_report(project_name: str, mode: str = "daily", start_date: str =
             ax.set_title(title, fontsize=14, fontweight='bold', pad=15)
             ax.legend(wedges, data_series.index, loc="center left", bbox_to_anchor=(1, 0, 0.5, 1), fontsize=10)
 
-        # 2. Hàm vẽ biểu đồ cột (Bar Chart) dành riêng cho Module
+        # 2. Function to draw bar chart specifically for Module
         def draw_bar_chart(ax, data_series, title):
             if data_series.empty:
                 ax.axis('off')
@@ -136,7 +136,7 @@ def get_project_report(project_name: str, mode: str = "daily", start_date: str =
                 yval = bar.get_height()
                 ax.text(bar.get_x() + bar.get_width()/2, yval + 0.1, int(yval), ha='center', va='bottom', fontweight='bold')
 
-        # Lặp để vẽ từng biểu đồ dựa theo Logic
+        # Loop to draw each chart based on Logic
         for i, (col_name, chart_name) in enumerate(charts_to_draw):
             if col_name in df_filtered.columns:
                 counts = df_filtered[col_name].value_counts()
@@ -166,4 +166,4 @@ def get_project_report(project_name: str, mode: str = "daily", start_date: str =
         return json.dumps(stats, ensure_ascii=False)
         
     except Exception as e:
-        return json.dumps({"error": f"Lỗi xử lý file: {str(e)}"})
+        return json.dumps({"error": f"File processing error: {str(e)}"})
