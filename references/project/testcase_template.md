@@ -1,62 +1,62 @@
-# TEMPLATE: CẤU TRÚC TEST CASE (Dành cho AI Agent) - PROJECT A
+# TEMPLATE: TEST CASE STRUCTURE (For AI Agent) - PROJECT A
 
-**[Instruction for AI]:** Khi người dùng yêu cầu tạo Test Case từ một file logic/yêu cầu đầu vào, bạn (AI) PHẢI đọc hiểu logic đó và trích xuất thông tin để tạo Test Case theo đúng định dạng Markdown dưới đây. Không thêm bớt các trường (fields) trừ khi người dùng yêu cầu. Phân tích cả luồng đúng (Happy Path/Positive) và luồng sai (Negative/Edge cases).
-
----
-
-# 🧪 TEST CASE DOCUMENT: [Tên Tính năng / Module]
-
-## 1. THÔNG TIN CHUNG
-* **Tính năng / Module:** [Tên tính năng được phân tích từ file input]
-* **Nguồn logic (Reference):** [Tên file input hoặc tóm tắt logic chính]
-* **Mục tiêu kiểm thử:** [Mô tả ngắn gọn mục đích của bộ test case này]
+**[Instruction for AI]:** When a user requests to create Test Cases from an input logic/requirement file, you (AI) MUST understand that logic and extract information to create Test Cases in the exact Markdown format below. Do not add or remove fields unless requested by the user. Analyze both the happy path (Happy Path/Positive) and the error path (Negative/Edge cases).
 
 ---
 
-## 2. TỔNG HỢP TEST CASE (SUMMARY)
+# 🧪 TEST CASE DOCUMENT: [Feature / Module Name]
 
-| TC ID | Tiêu đề Test Case (Title) | Phân loại | Mức độ ưu tiên (Priority) |
+## 1. GENERAL INFORMATION
+* **Feature / Module:** [Feature name extracted from the input file]
+* **Logic Source (Reference):** [Input file name or summary of main logic]
+* **Testing Objective:** [Briefly describe the purpose of this test case suite]
+
+---
+
+## 2. TEST CASE SUMMARY
+
+| TC ID | Test Case Title (Title) | Classification | Priority Level (Priority) |
 | :--- | :--- | :--- | :--- |
-| `TC_001` | [Mô tả ngắn gọn TC 1] | `Positive` / `Negative` | `Urgent` - `Very Low` |
-| `TC_002` | [Mô tả ngắn gọn TC 2] | `Positive` / `Negative` | `Urgent` - `Very Low` |
-*(AI tự động sinh thêm các dòng tương ứng với số lượng Test Case được tạo)*
+| `TC_001` | [Brief description of TC 1] | `Positive` / `Negative` | `Urgent` - `Very Low` |
+| `TC_002` | [Brief description of TC 2] | `Positive` / `Negative` | `Urgent` - `Very Low` |
+*(AI automatically generates additional rows corresponding to the number of Test Cases created)*
 
 ---
 
-## 3. CHI TIẾT TEST CASE (DETAILS)
+## 3. TEST CASE DETAILS
 
-### `TC_001`: [Tiêu đề Test Case - Ví dụ: Đăng nhập thành công với tài khoản hợp lệ]
-* **Mục tiêu (Objective):** Kiểm tra xem hệ thống xử lý như thế nào khi [điều kiện test].
-* **Loại (Type):** `Positive` / `Negative`
-* **Severity (Độ nghiêm trọng):** `Blocking` - `Very Low` (Dựa trên ma trận Defect)
-* **Điều kiện tiên quyết (Pre-conditions):**
-  * [Điều kiện 1 cần có trước khi test, ví dụ: Tài khoản đã được kích hoạt]
-  * [Điều kiện 2]
-* **Dữ liệu test (Test Data):**
-  * Username: `[Dữ liệu mẫu từ logic]`
-  * Password: `[Dữ liệu mẫu từ logic]`
-* **Các bước thực hiện (Test Steps):**
-  1. [Bước 1: Hành động của người dùng]
-  2. [Bước 2: Hành động tiếp theo]
-  3. [Bước 3: Nhấp vào nút X/Y/Z]
-* **Kết quả mong đợi (Expected Result):**
-  * [Hệ thống phải hiển thị thông báo gì?]
-  * [Trạng thái database/UI thay đổi ra sao theo đúng file logic input?]
+### `TC_001`: [Test Case Title - Example: Successful login with valid account]
+* **Objective:** Check how the system handles when [test condition].
+* **Type:** `Positive` / `Negative`
+* **Severity:** `Blocking` - `Very Low` (Based on Defect matrix)
+* **Pre-conditions:**
+  * [Condition 1 needed before testing, example: Account has been activated]
+  * [Condition 2]
+* **Test Data:**
+  * Username: `[Sample data from logic]`
+  * Password: `[Sample data from logic]`
+* **Test Steps:**
+  1. [Step 1: User's action]
+  2. [Step 2: Next action]
+  3. [Step 3: Click on X/Y/Z button]
+* **Expected Result:**
+  * [What message should the system display?]
+  * [How should database/UI states change according to the input logic file?]
 
 ---
 
-### `TC_002`: [Tiêu đề Test Case 2 - Ví dụ: Báo lỗi khi để trống trường bắt buộc]
-* **Mục tiêu (Objective):** [Mô tả mục tiêu]
-* **Loại (Type):** `Negative`
-* **Severity (Độ nghiêm trọng):** `Blocking` - `Very Low`
-* **Điều kiện tiên quyết (Pre-conditions):**
-  * [Điều kiện...]
-* **Dữ liệu test (Test Data):**
-  * Field A: `[Trống]`
-* **Các bước thực hiện (Test Steps):**
-  1. [Bước 1]
-  2. [Bước 2]
-* **Kết quả mong đợi (Expected Result):**
-  * [Mô tả kết quả lỗi dự kiến theo file logic input]
+### `TC_002`: [Test Case 2 Title - Example: Error reported when required field is left blank]
+* **Objective:** [Describe objective]
+* **Type:** `Negative`
+* **Severity:** `Blocking` - `Very Low`
+* **Pre-conditions:**
+  * [Condition...]
+* **Test Data:**
+  * Field A: `[Blank]`
+* **Test Steps:**
+  1. [Step 1]
+  2. [Step 2]
+* **Expected Result:**
+  * [Describe expected error result according to input logic file]
 
-*(AI lặp lại cấu trúc này cho đến khi bao phủ hết toàn bộ logic được cung cấp trong file input)*
+*(AI repeats this structure until it covers all the logic provided in the input file)*
