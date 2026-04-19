@@ -1,68 +1,68 @@
-# Tiêu chuẩn Đánh giá Bug - PROJECT A
+# Bug Evaluation Standards - PROJECT A
 
-Tài liệu này quy định các tiêu chí để hệ thống hóa quy trình phân loại, đánh giá mức độ ảnh hưởng và thứ tự ưu tiên xử lý lỗi (Defect) trong dự án.
+This document defines the criteria to systematize the process of classifying, evaluating the impact, and prioritizing the resolution of bugs (Defect) in the project.
 
 ---
 
-## 1. Phân biệt Bản chất: Severity vs. Priority
+## 1. Distinguishing the Nature: Severity vs. Priority
 
-| Đặc điểm | **Severity** (Mức độ nghiêm trọng) | **Priority** (Mức độ ưu tiên) |
+| Characteristic | **Severity** (Severity Level) | **Priority** (Priority Level) |
 | :--- | :--- | :--- |
-| **Trọng tâm** | Khía cạnh kỹ thuật & vận hành hệ thống. | Khía cạnh kinh doanh, thời gian & nguồn lực. |
-| **Câu hỏi chính** | "Lỗi này phá vỡ hệ thống đến mức nào?" | "Cần phải sửa lỗi này nhanh đến mức nào?" |
-| **Chủ thể** | **QA / Tester** (Dựa trên spec & hệ thống) | **PO / PM / Lead** (Dựa trên Roadmap & khách hàng) |
+| **Focus** | Technical & system operational aspects. | Business, time & resource aspects. |
+| **Main question** | "How much does this bug break the system?" | "How quickly does this bug need to be fixed?" |
+| **Subject** | **QA / Tester** (Based on spec & system) | **PO / PM / Lead** (Based on Roadmap & customers) |
 
 ---
 
-## 2. DEFECT BY SEVERITY (Mức độ nghiêm trọng)
-*Đánh giá dựa trên tác động của lỗi đối với tính năng và khả năng vận hành của phần mềm.*
+## 2. DEFECT BY SEVERITY (Severity Level)
+*Evaluated based on the bug's impact on the features and operability of the software.*
 
-| Cấp độ | Mô tả chi tiết |
+| Level | Detailed description |
 | :--- | :--- |
-| **Blocking** | Lỗi làm tê liệt hoàn toàn hệ thống hoặc chức năng chính. Không có cách khắc phục tạm thời (workaround). Ngăn cản việc kiểm thử các phần liên quan. |
-| **Important** | Lỗi ảnh hưởng nặng nề đến các tính năng cốt lõi. Người dùng không thể hoàn thành luồng nghiệp vụ chính (Critical Path). |
-| **Moderate** | Lỗi gây mất chức năng nhưng có cách xử lý tạm thời (workaround). Ảnh hưởng đến trải nghiệm nhưng không làm gián đoạn hoàn toàn quy trình. |
-| **Low** | Lỗi nhỏ về giao diện (UI) hoặc các tính năng phụ, không ảnh hưởng đến logic nghiệp vụ. |
-| **Very Low** | Các lỗi cực nhỏ, lỗi chính tả, hoặc các đề xuất cải thiện thẩm mỹ mang tính cá nhân. |
+| **Blocking** | The bug completely paralyzes the system or main function. No temporary workaround. Prevents testing of related parts. |
+| **Important** | The bug heavily affects core features. Users cannot complete the main business flow (Critical Path). |
+| **Moderate** | The bug causes loss of functionality but has a temporary workaround. Affects the experience but does not completely disrupt the process. |
+| **Low** | Minor interface (UI) bug or secondary features, does not affect business logic. |
+| **Very Low** | Extremely minor bugs, typos, or subjective cosmetic improvement suggestions. |
 
 ---
 
-## 3. DEFECT BY PRIORITY (Mức độ ưu tiên)
-*Đánh giá dựa trên mức độ khẩn cấp cần được sửa chữa.*
+## 3. DEFECT BY PRIORITY (Priority Level)
+*Evaluated based on the urgency of the repair needed.*
 
-| Cấp độ | Thời hạn xử lý dự kiến |
+| Level | Expected resolution time |
 | :--- | :--- |
-| **Urgent** | **Sửa ngay lập tức.** Thường xử lý trong vòng vài giờ hoặc trong ngày. Lỗi chặn đứng tiến độ team hoặc gây thiệt hại trực tiếp. |
-| **High** | **Ưu tiên cao.** Cần được giải quyết trong Sprint hiện tại hoặc trước kỳ phát hành (Release) kế tiếp. |
-| **Normal** | **Xử lý bình thường.** Sắp xếp sửa sau khi các lỗi quan trọng đã hoàn tất. Có thể chờ đến các bản cập nhật định kỳ. |
-| **Low** | **Ưu tiên thấp.** Sửa khi có thời gian trống, không ảnh hưởng đến kế hoạch Release chính. |
-| **Very Low** | **Cân nhắc sửa.** Thường là các lỗi thẩm mỹ hoặc mong muốn cải tiến (Suggestion) sẽ xử lý khi nguồn lực dư dả. |
+| **Urgent** | **Fix immediately.** Usually resolved within a few hours or within the day. The bug halts the team's progress or causes direct damage. |
+| **High** | **High priority.** Needs to be resolved in the current Sprint or before the next release cycle (Release). |
+| **Normal** | **Normal processing.** Scheduled for fixing after critical bugs are completed. Can wait until periodic updates. |
+| **Low** | **Low priority.** Fix when there is free time, does not affect the main Release plan. |
+| **Very Low** | **Consider fixing.** Usually cosmetic bugs or improvement requests (Suggestion) to be handled when resources are abundant. |
 
 ---
 
-## 4. Ma trận phân loại (Defect Triage Matrix)
+## 4. Triage Matrix (Defect Triage Matrix)
 
-Việc kết hợp Severity và Priority giúp đội ngũ phát triển tối ưu hóa nguồn lực:
+Combining Severity and Priority helps the development team optimize resources:
 
-* **Severity Cao / Priority Cao:** Hệ thống hỏng nặng + Cần sửa gấp (Ví dụ: Không thể thanh toán trên Production).
-* **Severity Cao / Priority Thấp:** Lỗi kỹ thuật nặng nhưng ít gặp (Ví dụ: Crash app trên dòng điện thoại cũ đã ngừng hỗ trợ).
-* **Severity Thấp / Priority Cao:** Lỗi nhẹ nhưng ảnh hưởng lớn đến thương hiệu (Ví dụ: Sai logo công ty, sai thông điệp khuyến mãi ở trang chủ).
-* **Severity Thấp / Priority Thấp:** Lỗi nhẹ, ít người thấy (Ví dụ: Lỗi chính tả ở trang điều khoản sử dụng).
+* **High Severity / High Priority:** System severely broken + Needs urgent fixing (Example: Cannot checkout on Production).
+* **High Severity / Low Priority:** Severe technical bug but rarely encountered (Example: App crashes on an old phone model that is no longer supported).
+* **Low Severity / High Priority:** Minor bug but major brand impact (Example: Incorrect company logo, wrong promotional message on the homepage).
+* **Low Severity / Low Priority:** Minor bug, rarely seen by people (Example: Typo on the terms of use page).
 
 ---
 
-## 5. Loại Bug (Defect Type)
+## 5. Bug Type (Defect Type)
 
-Khi báo cáo lỗi, cần gán nhãn thuộc các nhóm sau:
-* **Functional:** Lỗi sai lệch về logic nghiệp vụ, tính năng không chạy đúng spec.
-* **UI/UX:** Lỗi giao diện, sai lệch design, trải nghiệm người dùng không mượt mà.
-* **Performance:** Lỗi về tốc độ phản hồi, tải chậm, tràn bộ nhớ.
-* **Security:** Các lỗ hổng bảo mật, rò rỉ dữ liệu.
-* **Suggestion/Improvement:** Các đề xuất thay đổi để sản phẩm tốt hơn (không phải lỗi).
+When reporting a bug, it needs to be labeled under the following groups:
+* **Functional:** Business logic deviation bug, feature does not run according to spec.
+* **UI/UX:** Interface bug, design deviation, user experience is not smooth.
+* **Performance:** Bug regarding response speed, slow loading, memory leak.
+* **Security:** Security vulnerabilities, data leaks.
+* **Suggestion/Improvement:** Proposed changes to make the product better (not a bug).
 
 ---
 
 > [!IMPORTANT]
-> **Lưu ý cho Workflow:**
-> 1. **QA** thiết lập Severity. **PM/PO** có quyền quyết định cuối cùng về Priority.
-> 2. **Severity** thường cố định xuyên suốt vòng đời bug, nhưng **Priority** có thể thay đổi tùy theo áp lực thời gian (ví dụ: lỗi Low có thể nhảy lên High khi gần ngày bàn giao).
+> **Notes for Workflow:**
+> 1. **QA** sets the Severity. **PM/PO** has the final decision on Priority.
+> 2. **Severity** is usually fixed throughout the bug's lifecycle, but **Priority** can change depending on time pressure (for example: a Low bug can jump to High when nearing the handover date).
