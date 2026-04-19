@@ -17,23 +17,13 @@ def sync_data_from_sheets(project_name: str):
     try:
         creds = Credentials.from_service_account_file(CREDENTIALS_FILE, scopes=SCOPES)
         client = gspread.authorize(creds)
-        
-        # Mở file Google Sheet theo tên dự án
         spreadsheet = client.open(project_name) 
-        
-        # LẤY CHÍNH XÁC TỪ TAB "Bugs"
         worksheet = spreadsheet.worksheet("Bugs") 
-        
-        # Lấy toàn bộ dữ liệu
         data = worksheet.get_all_records()
         if data:
             df_sheets = pd.DataFrame(data)
             file_path = f"assets/{project_name}/bug_tracking_db.xlsx"
-            
-            # Đảm bảo thư mục tồn tại trước khi lưu
             os.makedirs(os.path.dirname(file_path), exist_ok=True)
-            
-            # Lưu đè lại file Excel cục bộ
             df_sheets.to_excel(file_path, index=False)
             print(f"[Sync] Đã đồng bộ dữ liệu mới nhất từ tab 'Bugs' Google Sheets cho dự án {project_name}.")
             return True
@@ -133,50 +123,38 @@ def get_project_report(project_name: str, mode: str = "daily", start_date: str =
             if data_series.empty:
                 ax.axis('off')
                 return
-            
-            # Tạo danh sách màu (dùng bộ màu Set3 cho đồng bộ với các Pie Chart)
-            # Dùng toán tử % để tự động lặp lại màu nếu số lượng Module nhiều hơn số màu có sẵn
             bar_colors = [plt.cm.Set3.colors[i % len(plt.cm.Set3.colors)] for i in range(len(data_series))]
-            
-            # Vẽ cột với danh sách màu vừa tạo
             bars = ax.bar(data_series.index, data_series.values, color=bar_colors, edgecolor='black', alpha=0.9)
             ax.set_title(title, fontsize=14, fontweight='bold', pad=15)
             ax.set_ylabel("Number of Bugs", fontweight='bold')
             
-            # Xoay tên các module nghiêng 45 độ để không bị đè lên nhau
             ax.tick_params(axis='x', rotation=45)
             for tick in ax.get_xticklabels():
                 tick.set_horizontalalignment('right')
                 
-            # Ghi số lượng bug ở đỉnh từng cột
             for bar in bars:
                 yval = bar.get_height()
                 ax.text(bar.get_x() + bar.get_width()/2, yval + 0.1, int(yval), ha='center', va='bottom', fontweight='bold')
+
         # Lặp để vẽ từng biểu đồ dựa theo Logic
         for i, (col_name, chart_name) in enumerate(charts_to_draw):
             if col_name in df_filtered.columns:
                 counts = df_filtered[col_name].value_counts()
-                
-                # NẾU LÀ MODULE THÌ GỌI HÀM VẼ CỘT, CÒN LẠI VẼ TRÒN
                 if col_name == "Module":
                     draw_bar_chart(axes[i], counts, chart_name)
                 else:
                     draw_pie_chart(axes[i], counts, chart_name)
             else:
                 axes[i].axis('off')
-
-        # Tắt (ẩn) các ô trống không dùng đến trong khung 2x3
         for j in range(len(charts_to_draw), len(axes)):
             axes[j].axis('off')
 
         plt.tight_layout()
         
-        # Lưu file
         chart_path = f"{output_dir}/{chart_filename}"
         plt.savefig(chart_path, dpi=150, bbox_inches='tight')
         plt.close()
 
-        # Tổng hợp dữ liệu trả về cho AI (để nó phân tích bằng text)
         stats = {
             "total_bugs": len(df_filtered),
             "by_module": df_filtered['Module'].value_counts().to_dict() if 'Module' in df.columns else {},

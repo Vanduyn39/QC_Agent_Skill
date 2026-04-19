@@ -14,7 +14,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CREDENTIALS_FILE = os.path.join(BASE_DIR, "credentials.json")
 
 # THAY BẰNG EMAIL THẬT CỦA BẠN ĐỂ SERVICE ACCOUNT SHARE QUYỀN
-ADMIN_EMAIL = "vanessa.phan.gos@gmail.com" 
+ADMIN_EMAIL = "your-email@gmail.com" 
 
 class GoogleSheetManager:
     def __init__(self):
@@ -37,7 +37,7 @@ class GoogleSheetManager:
         except gspread.exceptions.SpreadsheetNotFound:
             # Nếu chưa có thì tạo mới và share cho admin
             spreadsheet = self.client.create(project_name)
-            if ADMIN_EMAIL and ADMIN_EMAIL != "vanessa.phan.gos@gmail.com":
+            if ADMIN_EMAIL and ADMIN_EMAIL != "your-email@gmail.com":
                 spreadsheet.share(ADMIN_EMAIL, perm_type='user', role='writer')
             print(f"[Sheet Logger] Đã tạo file Sheet mới cho dự án: {project_name}")
 
