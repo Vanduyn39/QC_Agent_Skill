@@ -20,8 +20,7 @@ class GoogleSheetManager:
     def __init__(self):
         try:
             credentials = Credentials.from_service_account_file(
-                CREDENTIALS_FILE, scopes=SCOPES
-            )
+                CREDENTIALS_FILE, scopes=SCOPES)
             self.client = gspread.authorize(credentials)
         except Exception as e:
             print(f"Google Sheets connection error: {e}")
