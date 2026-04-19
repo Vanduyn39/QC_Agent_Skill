@@ -3,17 +3,17 @@ from google.oauth2.service_account import Credentials
 import json
 import os
 
-# Cấu hình kết nối
+# Connection configuration
 SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
     "https://www.googleapis.com/auth/drive"
 ]
 
-# Tự động trỏ ra thư mục gốc để lấy credentials.json
+# Automatically point to the root directory to get credentials.json
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CREDENTIALS_FILE = os.path.join(BASE_DIR, "credentials.json")
 
-# THAY BẰNG EMAIL THẬT CỦA BẠN ĐỂ SERVICE ACCOUNT SHARE QUYỀN
+# REPLACE WITH YOUR REAL EMAIL SO THE SERVICE ACCOUNT CAN SHARE PERMISSIONS
 ADMIN_EMAIL = "your-email@gmail.com" 
 
 class GoogleSheetManager:
@@ -24,30 +24,30 @@ class GoogleSheetManager:
             )
             self.client = gspread.authorize(credentials)
         except Exception as e:
-            print(f"Lỗi kết nối Google Sheets: {e}")
+            print(f"Google Sheets connection error: {e}")
             self.client = None
 
     def get_or_create_sheet(self, project_name, sheet_name):
         if not self.client:
             return None
         
-        # 1. Tìm hoặc tạo file Google Sheet cho dự án
+        # 1. Find or create a Google Sheet file for the project
         try:
             spreadsheet = self.client.open(project_name)
         except gspread.exceptions.SpreadsheetNotFound:
-            # Nếu chưa có thì tạo mới và share cho admin
+            # If it doesn't exist, create a new one and share it with the admin
             spreadsheet = self.client.create(project_name)
             if ADMIN_EMAIL and ADMIN_EMAIL != "your-email@gmail.com":
                 spreadsheet.share(ADMIN_EMAIL, perm_type='user', role='writer')
-            print(f"[Sheet Logger] Đã tạo file Sheet mới cho dự án: {project_name}")
+            print(f"[Sheet Logger] Created a new Sheet file for project: {project_name}")
 
-        # 2. Tìm hoặc tạo Tab (Worksheet) bên trong file
+        # 2. Find or create a Tab (Worksheet) inside the file
         try:
             worksheet = spreadsheet.worksheet(sheet_name)
         except gspread.exceptions.WorksheetNotFound:
             worksheet = spreadsheet.add_worksheet(title=sheet_name, rows="1000", cols="20")
             
-            # Tự động chèn Header tùy theo loại Log
+            # Automatically insert Header depending on Log type
             if sheet_name == "Bugs":
                 headers = ["Environment", "Platform", "Fixed Build Version", "Module", "Defect Name(sumary)", "Description", "Expect", "Actual Result", "Type", "Severity", "Priority", "Status", "Attachments", "Reported By", "DEV", "Date","Root Cause", "Note"]
                 worksheet.append_row(headers)
@@ -65,5 +65,5 @@ class GoogleSheetManager:
                 return True
             return False
         except Exception as e:
-            print(f"[Sheet Logger] Lỗi khi ghi data: {e}")
+            print(f"[Sheet Logger] Error writing data: {e}")
             return False
