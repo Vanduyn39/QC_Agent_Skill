@@ -106,13 +106,10 @@ def get_project_report(project_name: str, mode: str = "daily", start_date: str =
             ("Module", "Defect by Module"),
             ("Severity", "Defect by Severity"),
             ("Priority", "Defect by Priority"),
-            ("Type", "Defect by Type")
+            ("Type", "Defect by Type"),
+            ("Status", "Defect by Status")
         ]
         
-        if "Root Cause" in df.columns:
-            charts_to_draw.append(("Root Cause", "Root Cause Analysis"))
-        elif "Status" in df.columns:
-            charts_to_draw.append(("Status", "Defect by Status")) 
 
         # 1. Hàm vẽ biểu đồ tròn (Pie Chart) cho các trường phân loại
         def draw_pie_chart(ax, data_series, title):
