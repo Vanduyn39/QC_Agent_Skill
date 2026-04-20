@@ -1,5 +1,7 @@
 import gspread
 from google.oauth2.service_account import Credentials
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaFileUpload
 import json
 import os
 
@@ -23,9 +25,13 @@ class GoogleSheetManager:
                 CREDENTIALS_FILE, scopes=SCOPES
             )
             self.client = gspread.authorize(credentials)
+            
+            # [MỚI] Khởi tạo thêm Drive API Service
+            self.drive_service = build('drive', 'v3', credentials=credentials)
         except Exception as e:
-            print(f"Lỗi kết nối Google Sheets: {e}")
+            print(f"Lỗi kết nối Google Sheets/Drive: {e}")
             self.client = None
+            self.drive_service = None
 
     def get_or_create_sheet(self, project_name, sheet_name):
         if not self.client:
@@ -67,3 +73,53 @@ class GoogleSheetManager:
         except Exception as e:
             print(f"[Sheet Logger] Lỗi khi ghi data: {e}")
             return False
+
+    # ====================================================
+    # [MỚI] HÀM UPLOAD EVIDENCE LÊN GOOGLE DRIVE
+    # ====================================================
+    def upload_evidence(self, file_path):
+        if not self.drive_service:
+            return ""
+        try:
+            # !!! ĐIỀN ID THƯ MỤC EVIDENCE TRÊN DRIVE CỦA BẠN VÀO ĐÂY !!!
+            EVIDENCE_FOLDER_ID = "1HXj_Fn0crJzFkRo1ct1xrrSu-wbrB4h2" 
+
+            file_name = os.path.basename(file_path)
+            
+            import mimetypes
+            mime_type, _ = mimetypes.guess_type(file_path)
+            if not mime_type:
+                mime_type = 'application/octet-stream'
+
+            file_metadata = {
+                'name': file_name,
+                'parents': [EVIDENCE_FOLDER_ID],
+                'mimeType': mime_type
+            }
+            
+            media = MediaFileUpload(file_path, mimetype=mime_type, resumable=True)
+            
+            # Thực thi upload
+            file = self.drive_service.files().create(
+                body=file_metadata,
+                media_body=media,
+                fields='id, webViewLink',
+                supportsAllDrives=True
+            ).execute()
+            
+            file_id = file.get('id')
+            
+            # Phân quyền cho phép bất kỳ ai có link đều xem được
+            permission = {'type': 'anyone', 'role': 'reader'}
+            self.drive_service.permissions().create(
+                fileId=file_id,
+                body=permission,
+                fields='id',
+                supportsAllDrives=True
+            ).execute()
+            
+            # Trả về link chia sẻ
+            return file.get('webViewLink')
+        except Exception as e:
+            print(f"[Drive Logger] Lỗi upload file: {e}")
+            return ""
