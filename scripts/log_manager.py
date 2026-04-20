@@ -25,6 +25,33 @@ def log_bug_to_project(project_name: str, bug_data: dict):
     if "Date" not in bug_data or not bug_data["Date"]:
         bug_data["Date"] = datetime.now().strftime("%Y-%m-%d")
         
+    # ====================================================
+    # [MỚI] XỬ LÝ ATTACHMENT (UPLOAD LÊN DRIVE)
+    # ====================================================
+    attachment_name = str(bug_data.get("Attachments", "")).strip()
+    
+    # Nếu có tên file (không phải là link http có sẵn)
+    if attachment_name and not attachment_name.startswith("http"):
+        inputs_dir = f"{base_dir}/inputs"
+        input_file_path = os.path.join(inputs_dir, attachment_name)
+        
+        # Kiểm tra file có tồn tại trong folder inputs không
+        if os.path.exists(input_file_path):
+            print(f"[Log Manager] Đang upload evidence '{attachment_name}' lên thư mục Drive...")
+            
+            # Gọi hàm upload từ GS Manager và lấy link
+            drive_link = gs_manager.upload_evidence(input_file_path)
+            
+            if drive_link:
+                # Ghi đè tên file bằng link webViewLink
+                bug_data["Attachments"] = drive_link 
+                print(f"[Log Manager] Upload thành công, link: {drive_link}")
+            else:
+                bug_data["Attachments"] = f"{attachment_name} (Lỗi upload Drive)"
+        else:
+            print(f"[Log Manager] Cảnh báo: Không tìm thấy file '{attachment_name}' trong thư mục {inputs_dir}.")
+    # ====================================================
+
     row_data = {col: bug_data.get(col, "") for col in BUG_COLUMNS}
     df_new = pd.DataFrame([row_data])
 
