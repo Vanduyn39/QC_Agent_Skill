@@ -1,7 +1,10 @@
-import pandas as pd
 import os
+import json
 from datetime import datetime
-from sheet_logger import GoogleSheetManager # Import Manager mới
+from sheet_logger import GoogleSheetManager 
+
+# [MỚI] Tự động trỏ ra thư mục gốc của toàn bộ dự án
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 BUG_COLUMNS = [
     "Environment","Platform","Fixed Build Version", "Module", "Defect Name(sumary)", "Description", 
@@ -18,32 +21,27 @@ TC_COLUMNS = [
 gs_manager = GoogleSheetManager()
 
 def log_bug_to_project(project_name: str, bug_data: dict):
-    base_dir = f"assets/{project_name}"
-    file_path = f"{base_dir}/bug_tracking_db.xlsx"
-    os.makedirs(base_dir, exist_ok=True)
+    # Dùng đường dẫn tuyệt đối từ BASE_DIR
+    project_dir = os.path.join(BASE_DIR, "assets", project_name)
+    file_path = os.path.join(project_dir, "outputs", "bug_tracking_db.json")
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
     
     if "Date" not in bug_data or not bug_data["Date"]:
         bug_data["Date"] = datetime.now().strftime("%Y-%m-%d")
         
     # ====================================================
-    # [MỚI] XỬ LÝ ATTACHMENT (UPLOAD LÊN DRIVE)
+    # XỬ LÝ ATTACHMENT (UPLOAD LÊN DRIVE)
     # ====================================================
     attachment_name = str(bug_data.get("Attachments", "")).strip()
     
-    # Nếu có tên file (không phải là link http có sẵn)
     if attachment_name and not attachment_name.startswith("http"):
-        inputs_dir = f"{base_dir}/inputs"
+        inputs_dir = os.path.join(project_dir, "inputs")
         input_file_path = os.path.join(inputs_dir, attachment_name)
         
-        # Kiểm tra file có tồn tại trong folder inputs không
         if os.path.exists(input_file_path):
             print(f"[Log Manager] Đang upload evidence '{attachment_name}' lên thư mục Drive...")
-            
-            # Gọi hàm upload từ GS Manager và lấy link
-            drive_link = gs_manager.upload_evidence(input_file_path)
-            
+            drive_link = gs_manager.upload_evidence(project_name, input_file_path)            
             if drive_link:
-                # Ghi đè tên file bằng link webViewLink
                 bug_data["Attachments"] = drive_link 
                 print(f"[Log Manager] Upload thành công, link: {drive_link}")
             else:
@@ -53,44 +51,54 @@ def log_bug_to_project(project_name: str, bug_data: dict):
     # ====================================================
 
     row_data = {col: bug_data.get(col, "") for col in BUG_COLUMNS}
-    df_new = pd.DataFrame([row_data])
 
-    # 1. Backup vào file Excel local
-    if not os.path.exists(file_path):
-        df_new.to_excel(file_path, index=False)
-    else:
-        df_existing = pd.read_excel(file_path)
-        df_combined = pd.concat([df_existing, df_new], ignore_index=True)
-        df_combined.to_excel(file_path, index=False)
+    # 1. Backup vào file JSON local
+    existing_data = []
+    if os.path.exists(file_path):
+        with open(file_path, 'r', encoding='utf-8') as f:
+            try:
+                existing_data = json.load(f)
+            except json.JSONDecodeError:
+                existing_data = []
+                
+    existing_data.append(row_data)
+    
+    with open(file_path, 'w', encoding='utf-8') as f:
+        json.dump(existing_data, f, ensure_ascii=False, indent=4)
         
     # 2. Đẩy lên Google Sheets
     gs_data_list = [row_data[col] for col in BUG_COLUMNS]
     gs_manager.log_data(project_name, "Bugs", gs_data_list)
     
-    return f"Đã ghi log Bug thành công vào Local và Google Sheet của dự án {project_name}."
+    return f"Đã ghi log Bug thành công vào Local (JSON trong outputs) và Google Sheet của dự án {project_name}."
 
 def log_testcase_to_project(project_name: str, tc_data: dict):
-    """ Hàm mới dành riêng cho việc ghi Test Case """
-    base_dir = f"assets/{project_name}"
-    file_path = f"{base_dir}/testcase_db.xlsx"
-    os.makedirs(base_dir, exist_ok=True)
+    # Dùng đường dẫn tuyệt đối từ BASE_DIR
+    project_dir = os.path.join(BASE_DIR, "assets", project_name)
+    file_path = os.path.join(project_dir, "outputs", "testcase_db.json")
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
     
     if "Date" not in tc_data or not tc_data["Date"]:
         tc_data["Date"] = datetime.now().strftime("%Y-%m-%d")
         
     row_data = {col: tc_data.get(col, "") for col in TC_COLUMNS}
-    df_new = pd.DataFrame([row_data])
 
-    # 1. Backup vào file Excel local
-    if not os.path.exists(file_path):
-        df_new.to_excel(file_path, index=False)
-    else:
-        df_existing = pd.read_excel(file_path)
-        df_combined = pd.concat([df_existing, df_new], ignore_index=True)
-        df_combined.to_excel(file_path, index=False)
+    # 1. Backup vào file JSON local
+    existing_data = []
+    if os.path.exists(file_path):
+        with open(file_path, 'r', encoding='utf-8') as f:
+            try:
+                existing_data = json.load(f)
+            except json.JSONDecodeError:
+                existing_data = []
+                
+    existing_data.append(row_data)
+    
+    with open(file_path, 'w', encoding='utf-8') as f:
+        json.dump(existing_data, f, ensure_ascii=False, indent=4)
         
     # 2. Đẩy lên Google Sheets
     gs_data_list = [row_data[col] for col in TC_COLUMNS]
     gs_manager.log_data(project_name, "TestCases", gs_data_list)
     
-    return f"Đã ghi log Test Case thành công vào Local và Google Sheet của dự án {project_name}."
+    return f"Đã ghi log Test Case thành công vào Local (JSON trong outputs) và Google Sheet của dự án {project_name}."

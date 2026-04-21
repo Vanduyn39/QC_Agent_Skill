@@ -4,6 +4,7 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 import json
 import os
+import mimetypes
 
 # Cấu hình kết nối
 SCOPES = [
@@ -11,9 +12,10 @@ SCOPES = [
     "https://www.googleapis.com/auth/drive"
 ]
 
-# Tự động trỏ ra thư mục gốc để lấy credentials.json
+# Tự động trỏ ra thư mục gốc để lấy credentials.json và projects_config.json
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CREDENTIALS_FILE = os.path.join(BASE_DIR, "credentials.json")
+PROJECTS_CONFIG_FILE = os.path.join(BASE_DIR, "projects_config.json") # <== [MỚI]
 
 # THAY BẰNG EMAIL THẬT CỦA BẠN ĐỂ SERVICE ACCOUNT SHARE QUYỀN
 ADMIN_EMAIL = "vanessa.phan.gos@gmail.com" 
@@ -26,12 +28,23 @@ class GoogleSheetManager:
             )
             self.client = gspread.authorize(credentials)
             
-            # [MỚI] Khởi tạo thêm Drive API Service
+            # Khởi tạo thêm Drive API Service
             self.drive_service = build('drive', 'v3', credentials=credentials)
         except Exception as e:
             print(f"Lỗi kết nối Google Sheets/Drive: {e}")
             self.client = None
             self.drive_service = None
+
+    # [MỚI] Hàm đọc cấu hình của dự án từ file JSON
+    def get_project_config(self, project_name):
+        if os.path.exists(PROJECTS_CONFIG_FILE):
+            with open(PROJECTS_CONFIG_FILE, 'r', encoding='utf-8') as f:
+                try:
+                    configs = json.load(f)
+                    return configs.get(project_name, {})
+                except json.JSONDecodeError:
+                    print("[Config Warning] File projects_config.json bị lỗi định dạng.")
+        return {}
 
     def get_or_create_sheet(self, project_name, sheet_name):
         if not self.client:
@@ -67,7 +80,14 @@ class GoogleSheetManager:
         try:
             worksheet = self.get_or_create_sheet(project_name, sheet_name)
             if worksheet:
-                worksheet.append_row(data)
+                # 1. Lấy toàn bộ dữ liệu thực tế (hàm này tự động bỏ qua các dòng trống dính format)
+                all_values = worksheet.get_all_values()
+                
+                # 2. Tính toán chính xác số thứ tự của dòng tiếp theo
+                next_row_index = len(all_values) + 1
+                
+                # 3. Ép Google chèn đúng vào vị trí đó (bỏ qua mọi lỗi nhảy dòng)
+                worksheet.insert_row(data, index=next_row_index, value_input_option="USER_ENTERED")
                 return True
             return False
         except Exception as e:
@@ -75,18 +95,22 @@ class GoogleSheetManager:
             return False
 
     # ====================================================
-    # [MỚI] HÀM UPLOAD EVIDENCE LÊN GOOGLE DRIVE
+    # [CẬP NHẬT] HÀM UPLOAD EVIDENCE LÊN GOOGLE DRIVE THEO DỰ ÁN
     # ====================================================
-    def upload_evidence(self, file_path):
+    def upload_evidence(self, project_name, file_path):
         if not self.drive_service:
             return ""
         try:
-            # !!! ĐIỀN ID THƯ MỤC EVIDENCE TRÊN DRIVE CỦA BẠN VÀO ĐÂY !!!
-            EVIDENCE_FOLDER_ID = "1HXj_Fn0crJzFkRo1ct1xrrSu-wbrB4h2" 
+            # Đọc config để lấy thư mục Drive tương ứng với project_name
+            config = self.get_project_config(project_name)
+            EVIDENCE_FOLDER_ID = config.get("drive_folder_id")
+            
+            if not EVIDENCE_FOLDER_ID:
+                print(f"[Drive Logger] Cảnh báo: Dự án '{project_name}' chưa được cấu hình 'drive_folder_id' trong projects_config.json")
+                return ""
 
             file_name = os.path.basename(file_path)
             
-            import mimetypes
             mime_type, _ = mimetypes.guess_type(file_path)
             if not mime_type:
                 mime_type = 'application/octet-stream'
